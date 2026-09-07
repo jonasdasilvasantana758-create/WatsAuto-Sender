@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Cyber Dispatcher</title>
+  
+  <meta name="theme-color" content="#ffffff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="CyberDispatch">
+
+  <script>
+    (function setupDynamicPWA() {
+      const svgIcon = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' fill='%231d9bf0'/><path d='M256 120v272M120 256h272' stroke='%23ffffff' stroke-width='40' stroke-linecap='round'/></svg>`;
+      const manifestData = {
+        name: "Cyber Dispatcher",
+        short_name: "Dispatch",
+        start_url: window.location.href,
+        display: "standalone",
+        background_color: "#f7f9f9",
+        theme_color: "#ffffff",
+        orientation: "portrait",
+        icons: [{ src: svgIcon, sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" }]
+      };
+      const manifestUrl = URL.createObjectURL(new Blob([JSON.stringify(manifestData)], { type: 'application/json' }));
+      
+      const link = document.createElement('link');
+      link.rel = 'manifest';
+      link.href = manifestUrl;
+      document.head.appendChild(link);
+
+      const appleIcon = document.createElement('link');
+      appleIcon.rel = 'apple-touch-icon';
+      appleIcon.href = svgIcon;
+      document.head.appendChild(appleIcon);
+    })();
+  </script>
+
+  <style>
+    :root {
+      --bg: #f7f9f9;
+      --card-bg: #ffffff;
+      --border: #eff3f4;
+      --border-dark: #cfd9de;
+      --primary: #1d9bf0;
+      --primary-hover: #1a8cd8;
+      --danger: #f4212e;
+      --text: #0f1419;
+      --subtext: #536471;
+      --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-main);
+      min-height: 100vh;
+      padding-bottom: 70px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .app-header {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      padding: 0.75rem 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand { display: flex; align-items: center; gap: 0.5rem; }
+    .brand-logo { 
+      width: 10px; 
+      height: 10px; 
+      background: var(--primary); 
+      border-radius: 50%; 
+    }
+    .brand-title { 
+      font-size: 1rem; 
+      font-weight: 800; 
+      color: var(--text); 
+      letter-spacing: -0.3px; 
+    }
+    .brand-title span { color: var(--primary); }
+    .status-badge { 
+      font-size: 0.7rem; 
+      font-weight: 700;
+      padding: 3px 8px; 
+      border-radius: 9999px; 
+      background: rgba(29, 155, 240, 0.1); 
+      color: var(--primary); 
+    }
+
+    .container { max-width: 550px; margin: 0 auto; padding: 0.75rem; }
+    .tab-content { display: none; flex-direction: column; gap: 0.75rem; }
+    .tab-content.active { display: flex; }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+
+    .card-label { 
+      font-size: 0.75rem; 
+      font-weight: 700; 
+      color: var(--subtext); 
+      text-transform: uppercase; 
+      letter-spacing: 0.5px; 
+      margin-bottom: 0.6rem; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center;
+    }
+
+    .input-group { margin-bottom: 0.75rem; }
+    
+    input, textarea { 
+      width: 100%; 
+      background: var(--bg); 
+      border: 1px solid var(--border); 
+      color: var(--text); 
+      padding: 0.75rem 0.9rem; 
+      border-radius: 8px; 
+      font-size: 0.95rem; 
+      font-family: inherit;
+      outline: none; 
+      transition: border-color 0.15s ease, box-shadow 0.15s ease; 
+    }
+    
+    input:focus, textarea:focus { 
+      border-color: var(--primary); 
+      background: #ffffff;
+      box-shadow: 0 0 0 3px rgba(29, 155, 240, 0.15); 
+    }
+
+    .btn { 
+      background: var(--primary); 
+      color: #ffffff; 
+      font-weight: 700; 
+      border: none; 
+      padding: 0.8rem 1rem; 
+      border-radius: 9999px; 
+      font-size: 0.9rem; 
+      width: 100%; 
+      cursor: pointer; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      gap: 0.5rem; 
+      transition: background 0.15s ease, transform 0.1s ease;
+    }
+    
+    .btn:hover { background: var(--primary-hover); }
+    .btn:active { transform: scale(0.98); }
+    
+    .btn-secondary { 
+      background: transparent; 
+      color: var(--text); 
+      border: 1px solid var(--border-dark); 
+    }
+    .btn-secondary:hover { background: rgba(15, 20, 25, 0.05); }
+
+    .tag-container { display: flex; gap: 0.35rem; flex-wrap: wrap; margin-top: 0.5rem; }
+    .tag-chip { 
+      background: rgba(29, 155, 240, 0.08); 
+      border: 1px solid rgba(29, 155, 240, 0.2); 
+      color: var(--primary); 
+      font-size: 0.75rem; 
+      font-weight: 600;
+      padding: 4px 10px; 
+      border-radius: 9999px; 
+      cursor: pointer; 
+      transition: background 0.15s ease;
+    }
+    .tag-chip:active { background: rgba(29, 155, 240, 0.25); }
+
+    .list-item { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      background: #ffffff; 
+      padding: 0.75rem 0.9rem; 
+      border-radius: 12px; 
+      border: 1px solid var(--border); 
+      margin-bottom: 0.5rem; 
+    }
+    .list-item-info h4 { font-size: 0.9rem; color: var(--text); font-weight: 700; }
+    .list-item-info p { font-size: 0.8rem; color: var(--subtext); margin-top: 0.1rem; }
+    
+    .btn-sm { padding: 0.35rem 0.75rem; font-size: 0.75rem; width: auto; border-radius: 9999px; }
+    .btn-danger-link { color: var(--danger); cursor: pointer; font-weight: 700; text-transform: none; }
+
+    .bottom-nav { 
+      position: fixed; 
+      bottom: 0; 
+      left: 0; 
+      right: 0; 
+      background: rgba(255, 255, 255, 0.95); 
+      backdrop-filter: blur(8px); 
+      border-top: 1px solid var(--border); 
+      display: flex; 
+      justify-content: space-around; 
+      padding: 0.4rem 0; 
+      z-index: 1000; 
+    }
+    .nav-item { 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      gap: 0.15rem; 
+      color: var(--subtext); 
+      font-size: 0.65rem; 
+      font-weight: 700;
+      cursor: pointer; 
+      width: 25%; 
+      padding: 0.2rem 0;
+      transition: color 0.15s ease;
+    }
+    .nav-item svg { width: 22px; height: 22px; fill: currentColor; }
+    .nav-item.active { color: var(--primary); }
+  </style>
+</head>
+<body>
+
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-logo"></div>
+      <div class="brand-title">Cyber<span>Dispatch</span></div>
+    </div>
+    <div class="status-badge">PRONTO</div>
+  </header>
+
+  <main class="container">
+
+    <section id="tab-direct" class="tab-content active">
+      <div class="card">
+        <div class="card-label">
+          <span>Disparo Direto</span>
+          <span>WhatsApp Link</span>
+        </div>
+
+        <div class="input-group">
+          <input type="tel" id="mobileNumber" placeholder="Número com DDD (ex: 11999998888)" autocomplete="off">
+        </div>
+
+        <div class="input-group">
+          <textarea id="mobileMsg" rows="4" placeholder="Olá {nome}! {saudacao}, tudo bem?"></textarea>
+          <div class="tag-container">
+            <span class="tag-chip" onclick="insertTag('{saudacao}')">+ {saudacao}</span>
+            <span class="tag-chip" onclick="insertTag('{nome}')">+ {nome}</span>
+            <span class="tag-chip" onclick="insertTag('{data}')">+ {data}</span>
+            <span class="tag-chip" onclick="insertTag('{hora}')">+ {hora}</span>
+          </div>
+        </div>
+
+        <button class="btn" onclick="triggerDispatch()">
+          <svg width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M2.01 21L23 12L2.01 3L2 10l15 2l-15 2z"/></svg>
+          Abrir no WhatsApp
+        </button>
+      </div>
+    </section>
+
+    <section id="tab-queue" class="tab-content">
+      <div class="card">
+        <div class="card-label">Enfileirar Contato</div>
+        <div class="input-group">
+          <input type="text" id="queueName" placeholder="Nome do Destinatário">
+        </div>
+        <div class="input-group">
+          <input type="tel" id="queuePhone" placeholder="Número (DDD + Celular)">
+        </div>
+        <button class="btn btn-secondary" onclick="addToQueue()">+ Adicionar à Fila</button>
+      </div>
+
+      <div class="card">
+        <div class="card-label">
+          <span>Fila de Execução</span>
+          <span id="queueCount">0 ITENS</span>
+        </div>
+        <div id="queueList"></div>
+      </div>
+    </section>
+
+    <section id="tab-templates" class="tab-content">
+      <div class="card">
+        <div class="card-label">Modelos Pré-configurados</div>
+        <div id="templatesList"></div>
+      </div>
+    </section>
+
+    <section id="tab-history" class="tab-content">
+      <div class="card">
+        <div class="card-label">
+          <span>Histórico de Envios</span>
+          <span class="btn-danger-link" onclick="clearHistory()">Limpar</span>
+        </div>
+        <div id="historyList"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <nav class="bottom-nav">
+    <div class="nav-item active" onclick="switchTab('direct', this)">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 12h3v8h6v-6h2v6h6v-8h3L12 2z"/></svg>
+      <span>DIRETO</span>
+    </div>
+    <div class="nav-item" onclick="switchTab('queue', this)">
+      <svg viewBox="0 0 24 24"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>
+      <span>FILA</span>
+    </div>
+    <div class="nav-item" onclick="switchTab('templates', this)">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+      <span>MODELOS</span>
+    </div>
+    <div class="nav-item" onclick="switchTab('history', this)">
+      <svg viewBox="0 0 24 24"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+      <span>LOGS</span>
+    </div>
+  </nav>
+
+  <script>
+    let audioCtx = null;
+    function playClickSound() {
+      try {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+        osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.05); // A5
+
+        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.05);
+      } catch (e) {}
+    }
+
+    function getDynamicGreeting() {
+      const h = new Date().getHours();
+      return h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
+    }
+
+    function parseTemplate(template, contactName = '') {
+      const now = new Date();
+      return template
+        .replace(/{saudacao}/g, getDynamicGreeting())
+        .replace(/{nome}/g, contactName || 'Cliente')
+        .replace(/{data}/g, now.toLocaleDateString('pt-BR'))
+        .replace(/{hora}/g, now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }));
+    }
+
+    function insertTag(tag) {
+      const txt = document.getElementById('mobileMsg');
+      const start = txt.selectionStart || txt.value.length;
+      const end = txt.selectionEnd || txt.value.length;
+      txt.value = txt.value.substring(0, start) + tag + txt.value.substring(end);
+      txt.focus();
+      txt.setSelectionRange(start + tag.length, start + tag.length);
+    }
+
+    function triggerDispatch(phoneOverride = null, nameOverride = '') {
+      playClickSound();
+
+      let phone = phoneOverride || document.getElementById('mobileNumber').value;
+      let rawMsg = document.getElementById('mobileMsg').value;
+
+      phone = phone.replace(/\D/g, '');
+
+      if (!phone) {
+        alert('Informe um número de celular com DDD.');
+        return;
+      }
+
+      if (phone.length <= 11) {
+        phone = '55' + phone;
+      }
+
+      const parsedMsg = parseTemplate(rawMsg, nameOverride);
+      const targetUrl = `https://wa.me/${phone}?text=${encodeURIComponent(parsedMsg)}`;
+
+      saveHistory(phone, parsedMsg);
+      window.location.href = targetUrl;
+    }
+
+    let queue = JSON.parse(localStorage.getItem('cyber_queue') || '[]');
+    let history = JSON.parse(localStorage.getItem('cyber_history') || '[]');
+
+    const presetTemplates = [
+      "Olá {nome}! {saudacao}, confirmamos o seu agendamento para hoje.",
+      "{saudacao} {nome}! Segue o link para confirmação do seu pedido.",
+      "Aviso importante {nome}: Sua solicitação das {hora} foi processada."
+    ];
+
+    function addToQueue() {
+      const name = document.getElementById('queueName').value.trim();
+      const phone = document.getElementById('queuePhone').value.trim();
+      if (!phone) return alert('Digite o telefone para enfileirar.');
+
+      queue.push({ id: Date.now(), name, phone });
+      localStorage.setItem('cyber_queue', JSON.stringify(queue));
+      document.getElementById('queueName').value = '';
+      document.getElementById('queuePhone').value = '';
+      renderQueue();
+    }
+
+    function removeFromQueue(id) {
+      queue = queue.filter(item => item.id !== id);
+      localStorage.setItem('cyber_queue', JSON.stringify(queue));
+      renderQueue();
+    }
+
+    function renderQueue() {
+      const list = document.getElementById('queueList');
+      document.getElementById('queueCount').innerText = `${queue.length} ITENS`;
+
+      if (queue.length === 0) {
+        list.innerHTML = `<p style="font-size:0.85rem; color:var(--subtext); text-align:center; padding: 1rem 0;">Nenhum contato na fila.</p>`;
+        return;
+      }
+
+      list.innerHTML = queue.map(item => `
+        <div class="list-item">
+          <div class="list-item-info">
+            <h4>${item.name || 'Sem nome'}</h4>
+            <p>${item.phone}</p>
+          </div>
+          <div style="display:flex; gap:0.4rem;">
+            <button class="btn btn-sm" onclick="triggerDispatch('${item.phone}', '${item.name}')">Enviar</button>
+            <button class="btn btn-secondary btn-sm" onclick="removeFromQueue(${item.id})">✕</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function saveHistory(phone, msg) {
+      history.unshift({
+        id: Date.now(),
+        phone,
+        msg,
+        timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+      });
+      if (history.length > 20) history.pop();
+      localStorage.setItem('cyber_history', JSON.stringify(history));
+      renderHistory();
+    }
+
+    function renderHistory() {
+      const list = document.getElementById('historyList');
+
+      if (history.length === 0) {
+        list.innerHTML = `<p style="font-size:0.85rem; color:var(--subtext); text-align:center; padding: 1rem 0;">Sem envios registrados.</p>`;
+        return;
+      }
+
+      list.innerHTML = history.map(item => `
+        <div class="list-item">
+          <div class="list-item-info">
+            <h4>+${item.phone} <span style="font-size:0.75rem; color:var(--subtext); font-weight:normal;">(${item.timestamp})</span></h4>
+            <p>${item.msg}</p>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function clearHistory() {
+      history = [];
+      localStorage.removeItem('cyber_history');
+      renderHistory();
+    }
+
+    function renderTemplates() {
+      const container = document.getElementById('templatesList');
+      container.innerHTML = presetTemplates.map(tpl => `
+        <div class="list-item" style="cursor:pointer;" onclick="useTemplate('${tpl.replace(/'/g, "\\'")}')">
+          <div class="list-item-info">
+            <p style="color:var(--text); font-size:0.9rem;">${tpl}</p>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function useTemplate(tpl) {
+      document.getElementById('mobileMsg').value = tpl;
+      switchTab('direct', document.querySelectorAll('.nav-item')[0]);
+    }
+
+    function switchTab(tabId, el) {
+      playClickSound();
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+      document.getElementById(`tab-${tabId}`).classList.add('active');
+      el.classList.add('active');
+    }
+
+    renderQueue();
+    renderHistory();
+    renderTemplates();
+  </script>
+</body>
+</html>
